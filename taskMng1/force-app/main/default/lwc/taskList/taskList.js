@@ -1,31 +1,42 @@
 import { LightningElement, wire } from 'lwc';
-import { refreshApex } from 'lightning/uiRecordApi';
 import getTasks from '@salesforce/apex/TaskController.getTasks';
 import markTaskComplete from '@salesforce/apex/TaskController.markTaskComplete';
 
 export default class TaskList extends LightningElement {
     tasks;
-    error;
+    columns = [
+        { label: 'Name', fieldName: 'Name' },
+        { label: 'Due Date', fieldName: 'Due_Date__c', type: 'date' },
+        { label: 'Completed', fieldName: 'Completed__c', type: 'boolean' },
+        {
+            type: 'button',
+            typeAttributes: {
+                label: 'Mark Complete',
+                name: 'markComplete',
+                disabled: { fieldName: 'Completed__c' }
+            }
+        }
+    ];
+
     @wire(getTasks)
     wiredTasks({ error, data }) {
         if (data) {
             this.tasks = data;
-            this.error = undefined;
         } else if (error) {
-            this.error = error;
-            this.tasks = undefined;
+            console.error(error);
         }
     }
 
-    handleComplete(event) {
-        const taskId = event.target.dataset.id;
+    handleRowAction(event) {
+        const taskId = event.detail.row.Id;
         markTaskComplete({ taskId })
             .then(() => {
-                // Refresh tasks list after updating completion status
-                return refreshApex(this.wiredTasks);
+                this.tasks = this.tasks.map(task =>
+                    task.Id === taskId ? { ...task, Completed__c: true } : task
+                );
             })
             .catch(error => {
-                this.error = error;
+                console.error(error);
             });
     }
 }
