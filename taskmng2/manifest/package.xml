@@ -8,14 +8,3 @@
 </Package>
 
 
-<!-- Deployment Instructions:
-
-Navigate to the root of this project:
-   cd ~/Desktop/taskMSales/taskmng2
-
-Ensure the `sf` CLI is installed and authenticated with your Salesforce org
-
-Deploy using the metadata method with the following command:
-     sf deploy metadata --source-dir force-app/main/default/objects/Task__c
-
--->

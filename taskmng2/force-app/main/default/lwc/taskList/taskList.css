@@ -1,0 +1,9 @@
+.slds-table th {
+    background-color: #f4f6f9;
+    text-align: left;
+    padding: 10px;
+}
+
+.slds-table td {
+    padding: 8px;
+}

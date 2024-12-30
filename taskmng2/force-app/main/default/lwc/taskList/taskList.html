@@ -1,11 +1,12 @@
 <template>
-    <lightning-card title="Task List">
-      <lightning-datatable
-        key-field="id"
-        data={tasks}
-        columns={columns}
-        onrowaction={handleRowAction}>
-      </lightning-datatable>
-    </lightning-card>
-  </template>
-  
+  <lightning-card title="Task List" icon-name="custom:custom14">
+      <div class="slds-m-around_medium">
+          <lightning-datatable
+              data={tasks}
+              columns={columns}
+              key-field="Id"
+              onrowaction={handleRowAction}
+          ></lightning-datatable>
+      </div>
+  </lightning-card>
+</template>
