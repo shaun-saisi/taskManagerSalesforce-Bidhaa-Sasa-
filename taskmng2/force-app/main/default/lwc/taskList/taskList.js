@@ -1,27 +1,18 @@
-import { LightningElement, wire } from 'lwc';
-import getTasks from '@salesforce/apex/TaskController.getTasks'; // Apex method to fetch tasks
-import updateTaskCompletion from '@salesforce/apex/TaskController.updateTaskCompletion'; // Apex method to update task completion
-import { ShowToastEvent } from 'lightning/platformShowToastEvent'; // For showing toast messages
+import { LightningElement, wire, track } from 'lwc';
+import getTasks from '@salesforce/apex/TaskController.getTasks';
+import markTaskAsCompleted from '@salesforce/apex/TaskController.markTaskAsCompleted';
+import { refreshApex } from '@salesforce/apex';
 
 export default class TaskList extends LightningElement {
-    tasks = [];
-    columns = [
-        { label: 'Name', fieldName: 'Name' },
-        { label: 'Due Date', fieldName: 'Due_Date__c' },
-        {
-            label: 'Completed',
-            type: 'boolean',
-            fieldName: 'Completed__c',
-            typeAttributes: {
-                label: 'Completed',
-                name: 'completed',
-                onchange: this.handleCheckboxChange.bind(this),
-            },
-        },
-    ];
+    @track tasks = [];
+    @track showToast = false; // To control toast visibility
+    @track toastMessage = ''; // To set the toast message
+    wiredTasksData; // Store the wired data for refreshing
 
     @wire(getTasks)
-    wiredTasks({ error, data }) {
+    wiredTasks(response) {
+        this.wiredTasksData = response;
+        const { data, error } = response;
         if (data) {
             this.tasks = data;
         } else if (error) {
@@ -31,25 +22,24 @@ export default class TaskList extends LightningElement {
 
     handleCheckboxChange(event) {
         const taskId = event.target.dataset.id;
-        const isChecked = event.target.checked;
-
-        // Call Apex method to update task completion
-        updateTaskCompletion({ taskId, isChecked })
+        markTaskAsCompleted({ taskId: taskId })
             .then(() => {
-                this.showToast('Success', 'Task completion updated!', 'success');
+                this.toastMessage = 'Task completed successfully!';
+                this.showToast = true;
+
+                // Auto-hide the toast after 3 seconds
+                setTimeout(() => {
+                    this.showToast = false;
+                }, 3000);
+
+                this.refreshTasks();
             })
             .catch((error) => {
-                this.showToast('Error', 'Error updating task completion', 'error');
-                console.error(error);
+                console.error('Error completing task:', error);
             });
     }
 
-    showToast(title, message, variant) {
-        const evt = new ShowToastEvent({
-            title: title,
-            message: message,
-            variant: variant,
-        });
-        this.dispatchEvent(evt);
+    refreshTasks() {
+        return refreshApex(this.wiredTasksData); // Refresh the task list
     }
 }

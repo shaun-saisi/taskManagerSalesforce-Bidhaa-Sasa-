@@ -1,12 +1,37 @@
 <template>
-  <lightning-card title="Task List" icon-name="custom:custom14">
-      <div class="slds-m-around_medium">
-          <lightning-datatable
-              data={tasks}
-              columns={columns}
-              key-field="Id"
-              onrowaction={handleRowAction}
-          ></lightning-datatable>
-      </div>
-  </lightning-card>
+    <div>
+        <table class="slds-table">
+            <thead>
+                <tr>
+                    <th>Task Name</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <template for:each={tasks} for:item="task">
+                    <tr key={task.Id}>
+                        <td>{task.Name}</td>
+                        <td>
+                            <lightning-input
+                                type="checkbox"
+                                checked={task.Completed}
+                                data-id={task.Id}
+                                onchange={handleCheckboxChange}>
+                            </lightning-input>
+                        </td>
+                    </tr>
+                </template>
+            </tbody>
+        </table>
+
+        <!-- Custom Toast Notification -->
+        <template if:true={showToast}>
+            <div class="slds-notify_container">
+                <div class="slds-notify slds-notify_toast slds-theme_success">
+                    <span class="slds-assistive-text">Success</span>
+                    <span class="slds-text-heading_small">{toastMessage}</span>
+                </div>
+            </div>
+        </template>
+    </div>
 </template>
