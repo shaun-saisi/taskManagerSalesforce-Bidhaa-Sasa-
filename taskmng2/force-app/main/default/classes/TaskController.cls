@@ -5,7 +5,7 @@ public with sharing class TaskController {
     }
 
     @AuraEnabled
-    public static void markTaskAsCompleted(Id taskId) {
+    public static void markTaskCompleted(Id taskId) {
         Task__c task = [SELECT Id, Completed__c FROM Task__c WHERE Id = :taskId LIMIT 1];
         if (task != null) {
             task.Completed__c = true;

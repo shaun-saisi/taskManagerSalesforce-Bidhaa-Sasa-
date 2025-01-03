@@ -3,45 +3,62 @@ public class TaskBatchJobSchedulerTest {
     
     @isTest
     static void testSchedulerExecution() {
-        // Arrange: Create test data for the batch job
+        // Arrange: Create test data
         List<Task__c> tasks = new List<Task__c>();
         tasks.add(new Task__c(Name = 'Task 1', Due_Date__c = Date.today().addDays(-1), Completed__c = false));
         tasks.add(new Task__c(Name = 'Task 2', Due_Date__c = Date.today().addDays(-2), Completed__c = false));
         insert tasks;
-
-        // Act: Schedule the job and trigger execution
-        String cronExpression = '0 0 0 * * ?'; // Run once daily at midnight
-        String jobName = 'Test_TaskBatchJobScheduler';
+        
+        // Act: Schedule the job
         Test.startTest();
-        System.schedule(jobName, cronExpression, new TaskBatchJobScheduler());
+        String cronExp = '0 0 0 * * ?';
+        String jobId = System.schedule('Test Task Batch Job', 
+                                     cronExp, 
+                                     new TaskBatchJobScheduler());
+        
+        // Verify the scheduled job exists
+        CronTrigger ct = [SELECT Id, CronExpression, TimesTriggered 
+                         FROM CronTrigger 
+                         WHERE Id = :jobId];
+        System.assertEquals(cronExp, ct.CronExpression, 'Cron expression should match');
+        
+        // Force the batch job to run
+        TaskBatchJob batchJob = new TaskBatchJob();
+        Database.executeBatch(batchJob);
         Test.stopTest();
-
-        // Assert: Verify that the batch job was executed
-        List<AsyncApexJob> jobs = [SELECT Id, Status, JobType FROM AsyncApexJob WHERE JobType = 'BatchApex' AND Status = 'Completed'];
-        System.assert(!jobs.isEmpty(), 'Batch job should have been executed by the scheduler');
-
-        // Verify that tasks were updated
-        List<Task__c> updatedTasks = [SELECT Id, Completed__c FROM Task__c];
-        for (Task__c task : updatedTasks) {
-            if (task.Due_Date__c < Date.today()) {
-                System.assert(task.Completed__c, 'Tasks due before today should be marked as completed');
-            } else {
-                System.assert(!task.Completed__c, 'Future tasks should not be marked as completed');
-            }
+        
+        // Assert: Verify tasks were updated
+        List<Task__c> updatedTasks = [SELECT Id, Due_Date__c, Completed__c 
+                                    FROM Task__c 
+                                    WHERE Due_Date__c < TODAY];
+        System.assertEquals(2, updatedTasks.size(), 'Should find 2 tasks due in the past');
+        for(Task__c task : updatedTasks) {
+            System.assert(task.Completed__c, 'Past due tasks should be marked as completed');
         }
     }
-
+    
     @isTest
     static void testSchedulerWithoutTasks() {
-        // Act: Schedule the job with no tasks in the database
-        String cronExpression = '0 0 0 * * ?'; // Run once daily at midnight
-        String jobName = 'Test_TaskBatchJobScheduler_NoTasks';
+        // Act: Schedule the job
         Test.startTest();
-        System.schedule(jobName, cronExpression, new TaskBatchJobScheduler());
+        String cronExp = '0 0 0 * * ?';
+        String jobId = System.schedule('Test Task Batch Job No Tasks', 
+                                     cronExp, 
+                                     new TaskBatchJobScheduler());
+        
+        // Verify the scheduled job exists
+        CronTrigger ct = [SELECT Id, CronExpression, TimesTriggered 
+                         FROM CronTrigger 
+                         WHERE Id = :jobId];
+        System.assertEquals(cronExp, ct.CronExpression, 'Cron expression should match');
+        
+        // Force the batch job to run
+        TaskBatchJob batchJob = new TaskBatchJob();
+        Database.executeBatch(batchJob);
         Test.stopTest();
-
-        // Assert: Verify the batch job executed without errors
-        List<AsyncApexJob> jobs = [SELECT Id, Status, JobType FROM AsyncApexJob WHERE JobType = 'BatchApex' AND Status = 'Completed'];
-        System.assert(!jobs.isEmpty(), 'Batch job should have executed even with no tasks');
+        
+        // Assert: Verify no tasks were updated
+        Integer taskCount = [SELECT COUNT() FROM Task__c WHERE Completed__c = true];
+        System.assertEquals(0, taskCount, 'No tasks should be marked as completed');
     }
 }

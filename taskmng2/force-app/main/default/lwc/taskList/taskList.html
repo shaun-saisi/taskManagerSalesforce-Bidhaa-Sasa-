@@ -1,37 +1,65 @@
 <template>
-    <div>
-        <table class="slds-table">
-            <thead>
-                <tr>
-                    <th>Task Name</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                <template for:each={tasks} for:item="task">
-                    <tr key={task.Id}>
-                        <td>{task.Name}</td>
-                        <td>
-                            <lightning-input
-                                type="checkbox"
-                                checked={task.Completed}
-                                data-id={task.Id}
-                                onchange={handleCheckboxChange}>
-                            </lightning-input>
-                        </td>
-                    </tr>
-                </template>
-            </tbody>
-        </table>
+    <!-- Display loader while data is loading -->
+    <template if:true={isLoading}>
+        <lightning-spinner alternative-text="Loading tasks..." size="medium"></lightning-spinner>
+    </template>
 
-        <!-- Custom Toast Notification -->
-        <template if:true={showToast}>
-            <div class="slds-notify_container">
-                <div class="slds-notify slds-notify_toast slds-theme_success">
-                    <span class="slds-assistive-text">Success</span>
-                    <span class="slds-text-heading_small">{toastMessage}</span>
-                </div>
+    <!-- Display error message if tasks fail to load -->
+    <template if:false={isLoading}>
+        <template if:true={tasks.length}>
+            <!-- Filter buttons -->
+            <div class="filter-buttons">
+                <lightning-button
+                    label="All"
+                    variant={buttonVariants.all}
+                    data-filter="all"
+                    onclick={handleFilterChange}>
+                </lightning-button>
+                <lightning-button
+                    label="Pending"
+                    variant={buttonVariants.pending}
+                    data-filter="pending"
+                    onclick={handleFilterChange}>
+                </lightning-button>
+                <lightning-button
+                    label="Completed"
+                    variant={buttonVariants.completed}
+                    data-filter="completed"
+                    onclick={handleFilterChange}>
+                </lightning-button>
             </div>
+
+            <!-- Sort Button -->
+            <lightning-button-icon
+                icon-name={sortIcon.name}
+                alternative-text="Sort tasks"
+                onclick={handleSort}
+                class={sortIcon.class}>
+            </lightning-button-icon>
+
+            <!-- Task List -->
+            <ul class="task-list">
+                <template for:each={filteredTasks} for:item="task">
+                    <li key={task.Id} class="task-item">
+                        <span>{task.Name}</span>
+                        <lightning-button
+                            label="Toggle Status"
+                            data-id={task.Id}
+                            onclick={handleStatusToggle}>
+                        </lightning-button>
+                    </li>
+                </template>
+            </ul>
         </template>
-    </div>
+        <template if:false={tasks.length}>
+            <p>No tasks to display.</p>
+        </template>
+    </template>
+
+    <!-- Toast notification -->
+    <template if:true={showToast}>
+        <div class="toast {toastVariant}">
+            <span>{toastMessage}</span>
+        </div>
+    </template>
 </template>

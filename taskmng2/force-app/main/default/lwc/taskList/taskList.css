@@ -1,34 +1,31 @@
-.slds-table th {
-    background-color: #f4f6f9;
-    text-align: left;
-    padding: 10px;
+.task-list {
+    list-style: none;
+    padding: 0;
 }
-
-.slds-table td {
+.task-item {
+    display: flex;
+    justify-content: space-between;
     padding: 8px;
+    border-bottom: 1px solid #ddd;
 }
-
-.slds-notify_container {
+.filter-buttons {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+.toast {
     position: fixed;
-    top: 10px;
+    bottom: 16px;
     left: 50%;
     transform: translateX(-50%);
-    z-index: 9999;
-    animation: fadeInOut 4s;
+    padding: 16px;
+    border-radius: 8px;
+    color: white;
+    background-color: #0070d2;
 }
-
-/* Add fade-in and fade-out effect for the toast */
-@keyframes fadeInOut {
-    0% {
-        opacity: 0;
-    }
-    10% {
-        opacity: 1;
-    }
-    90% {
-        opacity: 1;
-    }
-    100% {
-        opacity: 0;
-    }
+.toast.success {
+    background-color: #28a745;
+}
+.toast.error {
+    background-color: #dc3545;
 }
