@@ -2,6 +2,8 @@ import { LightningElement, wire, track } from 'lwc';
 import getTasks from '@salesforce/apex/TaskController.getTasks';
 import markTaskCompleted from '@salesforce/apex/TaskController.markTaskCompleted';
 import { refreshApex } from '@salesforce/apex';
+import { flushPromises } from 'testUtils/flushPromises';
+
 
 export default class TaskList extends LightningElement {
     // Reactive properties
