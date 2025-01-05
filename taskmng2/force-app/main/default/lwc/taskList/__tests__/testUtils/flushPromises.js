@@ -1,4 +1,4 @@
-// flushPromises.js
+// flushPromises.js , A util file to run tests on my lwc
 export default function flushPromises() {
     return new Promise((resolve) => setTimeout(resolve, 0));
 }
