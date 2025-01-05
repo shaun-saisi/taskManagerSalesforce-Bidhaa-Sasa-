@@ -1,14 +1,12 @@
-import { LightningElement, wire, track } from 'lwc';
+import { LightningElement, wire, api, track } from 'lwc';
 import getTasks from '@salesforce/apex/TaskController.getTasks';
 import markTaskCompleted from '@salesforce/apex/TaskController.markTaskCompleted';
 import { refreshApex } from '@salesforce/apex';
-import { flushPromises } from 'testUtils/flushPromises';
-
 
 export default class TaskList extends LightningElement {
     // Reactive properties
-    @track tasks = [];
-    @track filteredTasks = [];
+    @api tasks = [];
+    @api filteredTasks = [];
     @track filterType = 'all';
     @track sortDirection = 'asc';
     @track isLoading = true;
@@ -47,6 +45,12 @@ export default class TaskList extends LightningElement {
         this.tasks = data;
         this.filterAndSortTasks();
         this.isLoading = false;
+    }
+
+    // Manually set tasks for testing purposes
+    @api
+    setTasksForTest(data) {
+        this.processTasks(data);
     }
 
     // Handle filter change
@@ -163,6 +167,9 @@ export default class TaskList extends LightningElement {
 
     // Computed sort icon
     get sortIcon() {
-        return `utility:${this.sortDirection === 'asc' ? 'arrowup' : 'arrowdown'}`;
+        return {
+            name: `utility:${this.sortDirection === 'asc' ? 'arrowup' : 'arrowdown'}`,
+            class: 'slds-button_icon slds-button_icon-inverse'
+        };
     }
 }
